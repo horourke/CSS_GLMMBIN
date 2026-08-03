@@ -29,12 +29,12 @@ set.seed(0111287)
 algo <- "lasso"
 method <- "ros"
 
-reps <- 200 # change to 200
+reps <- 200
 
 j_vals <- c(10000, 3000, 4000, 1000) # number of clusters for n=60,000 (creating ground truth)
 i_vals <- c(6, 20, 15, 60) # cluster size (intact for population data generation)
 int_vals <- c(-3, -1, 0) # individual-level imbalance controlled by the intercept
-tau_vals <- c(0,0.4)
+tau_vals <- c(0,0.4,2)
 p <- 20
 
 design <- expand.grid(
@@ -275,10 +275,6 @@ clusters <- unique(train_data1$clust)
 # define 5 folds
 folds <- sample(rep(1:5, length.out = length(clusters)))
 
-# check cluster assignment by fold is equal
-# delete for sim
-table(folds)
-
 # assign folds
 fold_assign <- data.frame(
   clust = clusters,
@@ -341,9 +337,6 @@ for(i in 1:5){
     }
     train_data_oversampled <- rbind(train_data_oversampled, balanced_data)
   } # end of cluster loop
-  
-  train_data_oversampled$fold <- i
-  validation_data$fold <- i
     
 ### 3c. hyperparameter tuning for glmmlasso for each fold of the k-fold cross-validation
   
@@ -381,7 +374,6 @@ for(i in 1:5){
       dplyr::pull(response_var)
   
   # predicting values for each of the glmmLasso model (10 lambdas) 
-  
     predictionMatrix <- predict_path(modList_fold, validation_data)
   
   # employing the loss function in form loss(actual,predicted)
@@ -598,7 +590,7 @@ rownames(results) <- NULL
 
 toc()
 
-# save results as RDS
+# save results as .RDS
 saveRDS(
   results,
   file = file.path(save_dir, "results_lasso_ros.RDS")
@@ -606,4 +598,3 @@ saveRDS(
 
 # save results as .csv
 write.csv(results, paste0(save_dir,"/results_lasso_ros.csv"), row.names = FALSE)
-
